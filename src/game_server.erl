@@ -7,6 +7,8 @@
 %% интерфейс gen_server'а
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
+-include("records.hrl").
+
 %% запуск сервера
 
 start() ->
@@ -16,43 +18,48 @@ start_link() ->
 	gen_server:start_link({global, game_server}, ?MODULE, [], []).
 
 init([]) ->
-	{ ok, game_logic:start_game() }.
+	{ ok, #game_state{cells=sets:new(), online_users=sets:new(), next_online_user=$z, winner=nobody} }.
 
 %% обработчики вызовов.
-%% _call требуют ответ: возвращают {reply, Response, NewState}
-%% _case не требуют: возвращают {noreply, Response}
+%% от handle_call требуется ответ: они возвращают {reply, Response, NewState}
+%% от handle_cast не требуется: они возвращают {noreply, Response}
 
 handle_call( {who_plays} , _, State) ->
-	{ reply, game_logic:who_plays(State),	State	};
+	{reply, game_logic:who_plays(State), State};
 
 handle_call( {who_won} , _, State) ->
 	{reply, game_logic:who_won(State), State};
 
+%% TODO: реализовать метод API
 handle_call( {get_last_cells, X, Y}, _, State) ->
 	{reply, game_logic:get_last_cells(State), State};
 
+%% TODO: реализовать метод API
 handle_call( {get_field}, _, State) ->
 	{reply, game_logic:get_field(State), State};
 
+%% TODO: реализовать метод API
 handle_call( {make_turn, Player, X, Y}, _, State) ->
 	{Status, NewState} = game_logic:try_make_turn(Player, X, Y, State),
 	{reply, Status, NewState};
 
+%% TODO: реализовать метод API
 handle_call( {join}, _, State) ->
 	{NewUserId, NewState} = game_logic:join_game(State),
 	{reply, NewUserId, NewState}.
 
 handle_cast( {reset}, _ ) ->
-	{noreply, game_logic:start_game()};
+	{noreply, game_logic:blank_state()};
 
+%% TODO: реализовать метод API
 handle_cast( {leave, Name}, State) ->
 	{noreply, game_logic:leave_game(Name, State)}.
 
-handle_info( _, State) ->
-	1.
+handle_info( _, State ) ->
+	{noreply, State}.
 
-terminate( _, State) ->
-	2.
+terminate( _, _ ) ->
+	ok.
 
-code_change( _, _, _) ->
-	3.
+code_change( _, State, _) ->
+	{ok, State}.

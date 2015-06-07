@@ -1,7 +1,7 @@
 -module(game_logic).
 
 -export([
-  start_game/0,
+  blank_state/0,
   who_plays/1,
   who_won/1,
   join_game/1,
@@ -10,29 +10,29 @@
   leave_game/2
 ]).
 
--include("game_logic.hrl").
+-include("records.hrl").
 
 %% игровая логика.
 %% функции здесь в основном возвращают либо Result (результат запроса),
 %% либо, если они меняют состояние игры, то {Result, NewState}
 
-start_game() ->
-  #game_state{cells=[], online_users=sets:new(), next_online_user=$a, winner=nobody}.
+blank_state() ->
+  #game_state{cells=sets:new(), online_users=sets:new(), next_online_user=$a, winner=?NOBODY}.
 
 %% возвращает список игроков онлайн
 %% пример: [97, 99, 102]
 who_plays(State) ->
-  aux_functions:numbers_to_list(
+  aux_functions:numbers_to_JSON(
     sets:to_list(State#game_state.online_users)).
 
 %% возвращает победителя либо -666
-%% пример: [97]
+%% пример: 97
 who_won(State) ->
-  io_lib:format("[~p]", [State#game_state.winner]).
+  io_lib:format("~p", [State#game_state.winner]).
 
-%% TODO: Дописать
+%% возвращает последние 10 поставленных клеток (или все, если их меньше 10)
 get_last_cells(State) ->
-  [].
+  lists:sublist(State#game_state.cells, max(1, length(State#game_state.cells) - 10), 10).
 
 %% TODO: Дописать
 get_field(State) ->
