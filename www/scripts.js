@@ -1,6 +1,7 @@
 var MAX = 20;
 var MIN = 1;
-var SIZE = "10px";
+var WIDTH = "50";
+var HEIGHT = "30";
 var INF = 10000;
 
 var API_prefix = "api/http_accessible/";
@@ -21,7 +22,6 @@ function login(new_pl_name)
 		dataType: "json",
 		async: "false"
 		}).done(function(data){
-		//alert(data);
 		if (data.status == "ok")
 			{	
 				// alert("Welcome");
@@ -49,7 +49,6 @@ function login(new_pl_name)
 				alert("User already exists");
 			})
 			redraw();
-			update();
 }
 
 function redraw()
@@ -66,29 +65,27 @@ function redraw()
 			{
 				var new_str=$("<tr>");
 				new_str.appendTo($(table));
+				// new_str.attr("width", "4em");
+				
 				
 				for (var j = MIN; j <= MAX; ++j)
 				{
 					var new_col=$("<td>");
 					new_col.attr("id", (INF * i + j));
-					// data not used ///
 					new_col.attr("bgcolor","white");
-					//new_col.text
-					//new_col.attr("bordercolor", "red");
-					new_col.attr({width:SIZE, height:SIZE});
-					//new_col.attr("onclick", "MOVE()");
+					// new_col.attr("bordercolor", "red");
+					new_col.attr({width : WIDTH, height : HEIGHT});
+					// new_col.attr("onclick", "MOVE()");
 					new_col.attr("onclick", "move(" + (INF * i + j) + ")")
 					new_col.appendTo($(new_str));
-					//$("#"+String(Number(MAX*(i-1)+j))).onclick(function(){move()});
+					// $("#"+String(Number(MAX*(i-1)+j))).onclick(function(){move()});
 				}
 			}
 			for (var i = 0; i < data.length; ++i) {
 				id = data[i].x * INF + data[i].y;
 				$("#" + id).text(data[i].user.substring(0,3));
 			}
-			
-			
-			setTimeout(function(){redraw(); update();}, 5000);
+			setTimeout(function(){redraw(); update();}, 1000);
 		})
 		
 };
@@ -112,16 +109,12 @@ function update(){
 
 function move(id)
 {
-	//alert(id);
 	var _id = Number(id);
-	
 	var line = Math.floor(_id / INF);
-	// alert(_id);
 	var col =  _id % INF;
 	//alert(line);
 	//alert(col);
-	alert("col = " + String(col) + " line = " + String(line));
-	
+	//alert("col = " + String(col) + " line = " + String(line));
 	// AJAX!!!!!
 	$.ajax({
 		url: API_prefix+json_make_move + line + "/" + col + "/" + $("#player_name").val(),
