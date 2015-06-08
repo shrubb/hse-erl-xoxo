@@ -38,7 +38,7 @@ reset(_, _, _) ->
 join_game(SessionId, _, Name) ->
   mod_esi:deliver(
     SessionId,
-    gen_server:call(?LINK_TO_GEN_SERVER, {join_game, Name})
+    gen_server:call(?LINK_TO_GEN_SERVER, {join_game, http_uri:decode(Name)})
   ).
 
 get_field(SessionId, _, _) ->
