@@ -17,17 +17,24 @@
 %% либо, если они меняют состояние игры, то {Result, NewState}
 
 blank_state() ->
-  #game_state{cells=[], online_users=[], moves_next = {next, 0}}.
+  #game_state{cells=[], online_users=[], moves_next = {next, 1}}.
 
 %% возвращает список игроков онлайн
 %% пример: ["rialexandrov", "shrubb"]
 who_plays(State) ->
   aux_functions:strings_to_JSON(State#game_state.online_users).
 
-%% возвращает победителя либо -666
-%% пример: 97
+%% возвращает {"status": "winner", "user": "shrubb"}
+%% либо {"status": "next", "user": "shrubb"}
 who_won(State) ->
-  State#game_state.moves_next.
+  {StateType, Player} = State#game_state.moves_next,
+  "{\"status\": \"" ++ atom_to_list(StateType) ++ "\", \"user\": \"" ++
+  case length(State#game_state.online_users) > Player of
+    true ->
+      lists:nth(Player, State#game_state.online_users);
+    false ->
+      "@nobody"
+  end ++ "\"}".
 
 %% возвращает занятые поля
 %% формат: смотри aux_functions:cells_to_JSON

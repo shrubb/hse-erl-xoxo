@@ -21,9 +21,9 @@ function login(new_pl_name)
 		}).done(function(data){
 		if (data.status == "ok")
 			{
-				NUM = data.num;
 				alert("Welcome");
-				$("#p_name").html("Your name and color is: <font color=" + COLORS[NUM] + ">"+$("#player_name").val()+" (your number:"+NUM+")");
+				$("#p_name").html("Your name and color is: <font color=" + COLORS[NUM] + ">"+
+					$("#player_name").val()+" (your number:"+NUM+")");
 				$("#p_name").attr("NUM",NUM);
 				var FONT_MENU=$("<font>");
 				FONT_MENU.insertAfter($("#p_name"));
@@ -32,7 +32,7 @@ function login(new_pl_name)
 				$(".registered").css("visibility","visible");
 			}
 			else 
-				alert("Already exist");	
+				alert("User already exists");	
 			})
 			redraw();
 			update();
