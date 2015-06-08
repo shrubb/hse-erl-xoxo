@@ -29,7 +29,7 @@ who_plays(State) ->
 who_won(State) ->
   {StateType, Player} = State#game_state.moves_next,
   "{\"status\": \"" ++ atom_to_list(StateType) ++ "\", \"user\": \"" ++
-  case length(State#game_state.online_users) > Player of
+  case length(State#game_state.online_users) >= Player of
     true ->
       lists:nth(Player, State#game_state.online_users);
     false ->
