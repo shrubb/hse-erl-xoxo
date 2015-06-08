@@ -12,7 +12,6 @@
 -record(game_state, {
   cells,
   online_users,
-  next_online_user,
   winner
 }).
 
@@ -26,4 +25,4 @@
 %% следующему пользователю?
 
 %% winner: id победителя либо NOBODY
--define(NOBODY, -666).
+-define(NOBODY, "\@nobody").

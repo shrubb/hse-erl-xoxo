@@ -1,6 +1,6 @@
 -module(aux_functions).
 
--export([numbers_to_JSON/1, cells_to_JSON/1]).
+-export([numbers_to_JSON/1, cells_to_JSON/1, find_cell/3, strings_to_JSON/1]).
 
 -include("records.hrl").
 
@@ -18,15 +18,21 @@ numbers_to_JSON(Numbers) ->
       ", ")
     ++ "]".
 
-% cell#{2, 3, 97} -> {"x": 2, "y": 3, "user": 97}
+%% ["string", "a"] -> "["string", "a"]"
+strings_to_JSON(Strings) ->
+  "[\"" ++
+    string:join(Strings, "\", \"")
+    ++ "\"]".
+
+% cell#{2, 3, "rialexandrov"} -> {"x": 2, "y": 3, "user": "rialexandrov"}
 cell_to_string(Cell) ->
   "{\"x\": " ++
   number_to_string(Cell#cell.x) ++
   ", \"y\": " ++
   number_to_string(Cell#cell.y) ++
-  ", \"user\": " ++
-  number_to_string(Cell#cell.player) ++
-  "}".
+  ", \"user\": \"" ++
+  Cell#cell.player ++
+  "\"}".
 
 %% вывод: [ {"x": 3, "y": 7, "user": 97}, ...,
 %%          {"x": 2, "y": 1, "user": 101} ]
@@ -38,3 +44,11 @@ cells_to_JSON(Cells) ->
         Cells),
       ", ")
     ++ "]".
+
+find_cell(Cells, X, Y) ->
+  lists:any(
+    fun(Cell) ->
+      (Cell#cell.x == X) and (Cell#cell.y == Y)
+    end,
+    Cells
+  ).

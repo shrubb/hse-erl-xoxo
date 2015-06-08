@@ -4,10 +4,10 @@
   blank_state/0,
   who_plays/1,
   who_won/1,
-  join_game/1,
-  get_last_cells/1,
+  join_game/2,
   get_field/1,
-  leave_game/2
+  leave_game/2,
+  try_make_turn/4
 ]).
 
 -include("records.hrl").
@@ -17,39 +17,51 @@
 %% либо, если они меняют состояние игры, то {Result, NewState}
 
 blank_state() ->
-  #game_state{cells=sets:new(), online_users=sets:new(), next_online_user=$a, winner=?NOBODY}.
+  #game_state{cells=[], online_users=sets:new(), winner=?NOBODY}.
 
 %% возвращает список игроков онлайн
-%% пример: [97, 99, 102]
+%% пример: ["rialexandrov", "shrubb"]
 who_plays(State) ->
-  aux_functions:numbers_to_JSON(
-    sets:to_list(State#game_state.online_users)).
+  aux_functions:strings_to_JSON(
+    sets:to_list(State#game_state.online_users)
+  ).
 
 %% возвращает победителя либо -666
 %% пример: 97
 who_won(State) ->
-  io_lib:format("~p", [State#game_state.winner]).
+  State#game_state.winner.
 
-%% возвращает последние 10 поставленных клеток (или все, если их меньше 10)
-get_last_cells(State) ->
-  lists:sublist(State#game_state.cells, max(1, length(State#game_state.cells) - 10), 10).
-
-%% TODO: Дописать
+%% возвращает занятые поля
+%% формат: смотри aux_functions:cells_to_JSON
 get_field(State) ->
-  [].
+  aux_functions:cells_to_JSON(State#game_state.cells).
 
-%% TODO: Дописать
 try_make_turn(X, Y, PlayerName, State) ->
-  {ok, State}.
+  io:format("~p ~p ~s~n", [X, Y, PlayerName]),
+  case aux_functions:find_cell(State#game_state.cells, X, Y) of
+    false ->
+      {"{\"status\": \"ok\"}",
+        #game_state{
+          cells = lists:append(
+            State#game_state.cells,
+            [#cell{x = X, y = Y, player = PlayerName}]
+          ),
+          online_users = State#game_state.online_users,
+          winner = State#game_state.winner
+        }
+      };
+    true ->
+      {"{\"status\": \"error\"}", State}
+  end.
 
 %% увеличивает счётчик игроков, возвращает {ИмяНовогоИгрока, NewState}
-join_game(State) ->
-  NewState = #game_state{
+join_game(Name, State) ->
+  %io:format("~s~n", [State#game_state.winner]),
+  #game_state{
     cells = State#game_state.cells,
-    online_users = sets:add_element(State#game_state.online_users, State#game_state.next_online_user),
-    next_online_user = State#game_state.next_online_user + 1,
-    winner = State#game_state.winner},
-  {NewState#game_state.next_online_user - 1, NewState}.
+    online_users = sets:add_element(Name, State#game_state.online_users),
+    winner = State#game_state.winner
+  }.
 
 %% убрать заданного игрока из списка игроков.
 %% возвращаем только NewState
@@ -57,5 +69,4 @@ leave_game(Name, State) ->
   #game_state{
     cells = State#game_state.cells,
     online_users = sets:del_element(State#game_state.online_users, Name),
-    next_online_user = State#game_state.next_online_user,
     winner = State#game_state.winner}.

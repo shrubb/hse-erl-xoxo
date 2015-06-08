@@ -10,10 +10,14 @@
 -export([
   who_plays/3,
   who_won/3,
-  reset/3
+  reset/3,
+  join_game/3,
+  get_field/3,
+  leave_game/3,
+  try_make_turn/3
 ]).
 
-%% в сигнатурах этих функций последний аргумент (In) --
+%% в сигнатурах этих функций последний аргумент (URL) --
 %% это как раз строка "аргумент_1/.../аргумент_N"
 
 who_plays(SessionId, _, _) ->
@@ -30,3 +34,24 @@ who_won(SessionId, _, _) ->
 
 reset(_, _, _) ->
   gen_server:cast(?LINK_TO_CALL, {reset}).
+
+join_game(_, _, Name) ->
+  gen_server:cast(?LINK_TO_CALL, {join_game, Name}).
+
+get_field(SessionId, _, _) ->
+  mod_esi:deliver(
+    SessionId,
+    gen_server:call(?LINK_TO_CALL, {get_field})
+  ).
+
+leave_game(_, _, Name) ->
+  gen_server:cast(?LINK_TO_CALL, {leave_game, Name}).
+
+try_make_turn(SessionId, _, URL) ->
+  Args = string:tokens(http_uri:decode(URL), "/"),
+  [X, Y] = lists:map(fun list_to_integer/1, [lists:nth(1, Args), lists:nth(2, Args)]),
+  PlayerName = lists:nth(3, Args),
+  mod_esi:deliver(
+    SessionId,
+    gen_server:call(?LINK_TO_CALL, {try_make_turn, X, Y, PlayerName})
+  ).
