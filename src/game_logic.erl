@@ -29,12 +29,12 @@ who_plays(State) ->
 who_won(State) ->
   {StateType, Player} = State#game_state.moves_next,
   "{\"status\": \"" ++ atom_to_list(StateType) ++ "\", \"user\": \"" ++
-  case length(State#game_state.online_users) >= Player of
-    true ->
-      lists:nth(Player, State#game_state.online_users);
-    false ->
-      "@nobody"
-  end ++ "\"}".
+    case length(State#game_state.online_users) >= Player of
+      true ->
+        lists:nth(Player, State#game_state.online_users);
+      false ->
+        "@nobody"
+    end ++ "\"}".
 
 %% возвращает занятые поля
 %% формат: смотри aux_functions:cells_to_JSON
@@ -45,33 +45,35 @@ get_field(State) ->
 %% вернёт {"status": STATUS},
 %% где STATUS = ok/game_over/zanyato/not_your_turn
 
-try_make_turn(X, Y, ResuestPlayerName, State) ->
+try_make_turn(X, Y, RequestPlayerName, State) ->
   {StateType, NextPlayerNumber} = State#game_state.moves_next,
-  case StateType of
-    winner -> {"{\"status\": \"game_over\"}", State};
-    no_users -> {"{\"status\": \"not_your_turn\"}", State};
-    next ->
-      case lists:nth(NextPlayerNumber, State#game_state.online_users) of
-        ResuestPlayerName ->
-          case aux_functions:find_cell(State#game_state.cells, X, Y) of
-            false ->
-              {"{\"status\": \"ok\"}",
-                #game_state{
-                  cells = lists:append(
-                    State#game_state.cells,
-                    [#cell{x = X, y = Y, player = ResuestPlayerName}]
-                  ),
-                  online_users = State#game_state.online_users,
-                  moves_next = {next, NextPlayerNumber rem
-                    length(State#game_state.online_users) + 1}
-                }
-              };
-            _ ->
-              {"{\"status\": \"zanyato\"}", State}
-          end;
-        _ -> {"{\"status\": \"not_your_turn\"}", State}
-      end
-  end.
+  {Response, NewState} =
+    case StateType of
+      winner -> {"{\"status\": \"game_over\"}", State};
+      no_users -> {"{\"status\": \"not_your_turn\"}", State};
+      next ->
+        case lists:nth(NextPlayerNumber, State#game_state.online_users) of
+          RequestPlayerName ->
+            case aux_functions:find_cell(State#game_state.cells, X, Y) of
+              false ->
+                {"{\"status\": \"ok\"}",
+                  #game_state{
+                    cells = lists:append(
+                      State#game_state.cells,
+                      [#cell{x = X, y = Y, player = ResuestPlayerName}]
+                    ),
+                    online_users = State#game_state.online_users,
+                    moves_next = {next, NextPlayerNumber rem
+                      length(State#game_state.online_users) + 1}
+                  }
+                };
+              _ ->
+                {"{\"status\": \"zanyato\"}", State}
+            end;
+          _ -> {"{\"status\": \"not_your_turn\"}", State}
+        end
+    end,
+  {Response, check_for_victory(NewState, RequestPlayerName)}.
 
 %% увеличивает счётчик игроков, возвращает {СТАТУС, NewState}
 %% где СТАТУС = '{"status": "ok"}' или '{"status": "error"}'
@@ -84,10 +86,10 @@ join_game(Name, State) ->
         cells = State#game_state.cells,
         online_users = lists:append(State#game_state.online_users, [Name]),
         moves_next =
-          case length(State#game_state.online_users) of
-            0 -> {next, 1};
-            _ -> State#game_state.moves_next
-          end
+        case length(State#game_state.online_users) of
+          0 -> {next, 1};
+          _ -> State#game_state.moves_next
+        end
       }
     };
     true -> {"{\"status\": \"error\"}", State}
@@ -115,3 +117,16 @@ leave_game(Name, State) ->
           length(State#game_state.online_users) + 1}
       }
   end.
+
+check_for_victory(State, WhoMadeMove) ->
+  Cells = lists:filter(
+    fun(Cell) ->
+      Cell#cell.player == WhoMadeMove
+    end,
+    State#game_state.cells
+  ),
+  CellsSortedByY = lists:keysort(2, Cells),
+  CellsSortedByX = lists:keysort(1, Cells),
+  CellsSortedByXY = lists:keysort(1, CellsSortedByY),
+  CellsSortedByYX = lists:keysort(2, CellsSortedByX),
+  State.
