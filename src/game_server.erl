@@ -35,11 +35,11 @@ handle_call( {get_field}, _, State) ->
 
 handle_call( {try_make_turn, X, Y, Player}, _, State) ->
 	{Status, NewState} = game_logic:try_make_turn(X, Y, Player, State),
-	{reply, Status, NewState}.
+	{reply, Status, NewState};
 
-handle_cast( {join_game, Name}, State) ->
-	%io:format("~s ~s~n", [Name, State#game_state.winner]),
-	{noreply, game_logic:join_game(Name, State)};
+handle_call( {join_game, Name}, _, State) ->
+	{Status, NewState} = game_logic:join_game(Name, State),
+	{reply, Status, NewState}.
 
 handle_cast( {reset}, _ ) ->
 	{noreply, game_logic:blank_state()};

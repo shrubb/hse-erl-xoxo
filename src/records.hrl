@@ -12,7 +12,7 @@
 -record(game_state, {
   cells,
   online_users,
-  winner
+  moves_next
 }).
 
 %% cells: занятые клетки на поле;
@@ -21,8 +21,5 @@
 %% online_users: пользователи в игре;
 %% set из их id (пока что числа)
 
-%% next_online_user: какой id присвоим
-%% следующему пользователю?
-
-%% winner: id победителя либо NOBODY
--define(NOBODY, "\@nobody").
+%% moves_next: кто ходит следующий.
+%% либо {next, Player}, либо {winner, Player}, если кто-то уже победил

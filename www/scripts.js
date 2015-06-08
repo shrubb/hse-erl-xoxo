@@ -1,10 +1,13 @@
 var MAX = 40;
 var MIN = 1;
 var SIZE="20px";
-var req_new_player="";
-var json_get_table="";
-var json_get_state="";
-var json_make_move="";
+
+var API_prefix = "api/http_accessible/";
+var req_new_player="join_game/";
+var json_get_table="get_field/";
+var json_get_state="who_won/";
+var json_make_move="try_make_turn/";
+
 var COLORS = ["red","green","blue","yellow","black", "purple"];
 var NUM;
 var State=1;
@@ -12,11 +15,11 @@ var State=1;
 function login(new_pl_name)
 {
 	$.ajax({
-		url:req_new_player+new_pl_name,
+		url: API_prefix+req_new_player+new_pl_name,
 		dataType: "json",
-		async:"false"
+		async: "false"
 		}).done(function(data){
-		if (data.Exit_code=="0")
+		if (data.status == "ok")
 			{
 				NUM = data.num;
 				alert("Welcome");
@@ -38,7 +41,7 @@ function login(new_pl_name)
 function redraw()
 {
 	$.ajax({
-		url:json_get_table,
+		url: API_prefix+json_get_table,
 		dataType: "json",
 		async:"false"
 		}).done(function(data)
@@ -71,7 +74,7 @@ function redraw()
 
 function update(){
 		$.ajax({
-			url:json_get_state,
+			url: API_prefix+json_get_state,
 			dataType: "json",
 			async:"false"
 			}).done(function(data){
@@ -88,16 +91,16 @@ function move(id)
 	//alert(id);
 	var _id = id;
 	
-	var l = Math.floor(Number(id)/INF);
+	//var l = Math.floor(Number(id)/INF);
 	alert(id);
 	//var с = Number(id) - INF*l;
-	alert(l);
+	//alert(l);
 	//alert(c);
 	//alert("col = " + String(col) + " line = " + String(line));
 	
 	// AJAX!!!!!
 	/*$.ajax({
-		url:json_get_table,
+		url: API_prefix+json_get_table,
 		dataType: "json",
 		async:"false"
 		}).done(function(data)

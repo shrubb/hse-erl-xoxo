@@ -1,6 +1,12 @@
 -module(aux_functions).
 
--export([numbers_to_JSON/1, cells_to_JSON/1, find_cell/3, strings_to_JSON/1]).
+-export([
+  numbers_to_JSON/1,
+  cells_to_JSON/1,
+  find_cell/3,
+  strings_to_JSON/1,
+  index_of/2
+]).
 
 -include("records.hrl").
 
@@ -52,3 +58,12 @@ find_cell(Cells, X, Y) ->
     end,
     Cells
   ).
+
+index_of(Elem, [Elem|_]) ->
+  1;
+
+index_of(_, [_|[]]) ->
+  666;
+
+index_of(Elem, [_|T]) ->
+  index_of(Elem, T) + 1.
