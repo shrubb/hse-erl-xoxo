@@ -40,8 +40,8 @@ cell_to_string(Cell) ->
   Cell#cell.player ++
   "\"}".
 
-%% вывод: [ {"x": 3, "y": 7, "user": 97}, ...,
-%%          {"x": 2, "y": 1, "user": 101} ]
+%% вывод: [ {"x": 3, "y": 7, "user": "Roma"}, ...,
+%%          {"x": 2, "y": 1, "user": "Egor"} ]
 cells_to_JSON(Cells) ->
   "[" ++
     string:join(

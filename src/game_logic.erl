@@ -17,7 +17,7 @@
 %% либо, если они меняют состояние игры, то {Result, NewState}
 
 blank_state() ->
-  #game_state{cells=[], online_users=[], moves_next = {next, 1}}.
+  #game_state{cells=[], online_users=[], moves_next = {no_users, 1}}.
 
 %% возвращает список игроков онлайн
 %% пример: ["rialexandrov", "shrubb"]
@@ -49,7 +49,8 @@ try_make_turn(X, Y, ResuestPlayerName, State) ->
   {StateType, NextPlayerNumber} = State#game_state.moves_next,
   case StateType of
     winner -> {"{\"status\": \"game_over\"}", State};
-    true ->
+    no_users -> {"{\"status\": \"not_your_turn\"}", State};
+    next ->
       case lists:nth(NextPlayerNumber, State#game_state.online_users) of
         ResuestPlayerName ->
           case aux_functions:find_cell(State#game_state.cells, X, Y) of
@@ -60,15 +61,15 @@ try_make_turn(X, Y, ResuestPlayerName, State) ->
                     State#game_state.cells,
                     [#cell{x = X, y = Y, player = ResuestPlayerName}]
                   ),
-                  moves_next =
-                  State#game_state.moves_next rem
-                    length(State#game_state.online_users) + 1
+                  online_users = State#game_state.online_users,
+                  moves_next = {next, NextPlayerNumber rem
+                    length(State#game_state.online_users) + 1}
                 }
               };
-            true ->
+            _ ->
               {"{\"status\": \"zanyato\"}", State}
           end;
-        true -> {"{\"status\": \"not_your_turn\"}", State}
+        _ -> {"{\"status\": \"not_your_turn\"}", State}
       end
   end.
 
@@ -82,7 +83,11 @@ join_game(Name, State) ->
       #game_state{
         cells = State#game_state.cells,
         online_users = lists:append(State#game_state.online_users, [Name]),
-        moves_next = State#game_state.moves_next
+        moves_next =
+          case length(State#game_state.online_users) of
+            0 -> {next, 1};
+            _ -> State#game_state.moves_next
+          end
       }
     };
     true -> {"{\"status\": \"error\"}", State}
@@ -92,10 +97,11 @@ join_game(Name, State) ->
 %% возвращаем только NewState
 leave_game(Name, State) ->
   Index = aux_functions:index_of(Name, State#game_state.online_users),
+  {StateType, NextPlayer} = State#game_state.moves_next,
   if
     Index > length(State) ->
       State;
-    Index > State#game_state.moves_next ->
+    Index > NextPlayer ->
       #game_state{
         cells = State#game_state.cells,
         online_users = lists:delete(Name, State#game_state.online_users),
@@ -105,8 +111,7 @@ leave_game(Name, State) ->
       #game_state{
         cells = State#game_state.cells,
         online_users = lists:delete(Name, State#game_state.online_users),
-        moves_next =
-          State#game_state.moves_next rem
-          length(State#game_state.online_users) + 1
+        moves_next = {StateType, NextPlayer rem
+          length(State#game_state.online_users) + 1}
       }
   end.
