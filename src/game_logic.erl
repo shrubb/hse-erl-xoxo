@@ -34,23 +34,35 @@ who_won(State) ->
 get_field(State) ->
   aux_functions:cells_to_JSON(State#game_state.cells).
 
-try_make_turn(X, Y, PlayerName, State) ->
-  io:format("~p ~p ~s~n", [X, Y, PlayerName]),
-  case aux_functions:find_cell(State#game_state.cells, X, Y) of
-    false ->
-      {"{\"status\": \"ok\"}",
-        #game_state{
-          cells = lists:append(
-            State#game_state.cells,
-            [#cell{x = X, y = Y, player = PlayerName}]
-          ),
-          moves_next =
-            State#game_state.moves_next rem
-            length(State#game_state.online_users) + 1
-        }
-      };
+%% попробовать сделать ход
+%% вернёт {"status": STATUS},
+%% где STATUS = ok/game_over/zanyato/not_your_turn
+
+try_make_turn(X, Y, ResuestPlayerName, State) ->
+  {StateType, NextPlayerNumber} = State#game_state.moves_next,
+  case StateType of
+    winner -> {"{\"status\": \"game_over\"}", State};
     true ->
-      {"{\"status\": \"error\"}", State}
+      case lists:nth(NextPlayerNumber, State#game_state.online_users) of
+        ResuestPlayerName ->
+          case aux_functions:find_cell(State#game_state.cells, X, Y) of
+            false ->
+              {"{\"status\": \"ok\"}",
+                #game_state{
+                  cells = lists:append(
+                    State#game_state.cells,
+                    [#cell{x = X, y = Y, player = ResuestPlayerName}]
+                  ),
+                  moves_next =
+                  State#game_state.moves_next rem
+                    length(State#game_state.online_users) + 1
+                }
+              };
+            true ->
+              {"{\"status\": \"zanyato\"}", State}
+          end;
+        true -> {"{\"status\": \"not_your_turn\"}", State}
+      end
   end.
 
 %% увеличивает счётчик игроков, возвращает {СТАТУС, NewState}

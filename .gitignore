@@ -11,4 +11,4 @@ rel/example_project
 .idea
 *~
 *.log
-
+.DS_Store
