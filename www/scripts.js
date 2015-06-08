@@ -1,12 +1,14 @@
-var MAX = 40;
+var MAX = 20;
 var MIN = 1;
-var SIZE="20px";
+var SIZE = "10px";
+var INF = 10000;
 
 var API_prefix = "api/http_accessible/";
-var req_new_player="join_game/";
-var json_get_table="get_field/";
-var json_get_state="who_won/";
-var json_make_move="try_make_turn/";
+var req_new_player = "join_game/";
+var json_get_table = "get_field/";
+var json_get_state = "who_won/";
+var json_make_move = "try_make_turn/";
+var json_who_plays = "who_plays/";
 
 var COLORS = ["red","green","blue","yellow","black", "purple"];
 var NUM;
@@ -19,20 +21,31 @@ function login(new_pl_name)
 		dataType: "json",
 		async: "false"
 		}).done(function(data){
-		if (data.status == "ok")
-			{
+		alert(data);
+		/*if (data.status == "ok")
+			{	
 				alert("Welcome");
-				$("#p_name").html("Your name and color is: <font color=" + COLORS[NUM] + ">"+
-					$("#player_name").val()+" (your number:"+NUM+")");
-				$("#p_name").attr("NUM",NUM);
-				var FONT_MENU=$("<font>");
-				FONT_MENU.insertAfter($("#p_name"));
-				$("#new_player").css("visibility","hidden");
-				$("#player_name").css("visibility","hidden");
-				$(".registered").css("visibility","visible");
+				$.ajax({
+					url: API_prefix + json_who_plays,
+					dataType: "json",
+					async: "false"
+					}).done(function(ans)
+						{
+							NUM = ans.length;
+							alert(NUM);
+							alert("Welcome");
+							$("#p_name").html("Your name and color is: <font color=" + COLORS[NUM] + ">"+
+							$("#player_name").val()+" (your number:"+NUM+")");
+							$("#p_name").attr("NUM",NUM);
+							var FONT_MENU=$("<font>");
+							FONT_MENU.insertAfter($("#p_name"));
+							$("#new_player").css("visibility","hidden");
+							$("#player_name").css("visibility","hidden");
+							$(".registered").css("visibility","visible");
+						})
 			}
 			else 
-				alert("User already exists");	
+				alert("User already exists");*/	
 			})
 			redraw();
 			update();
@@ -47,10 +60,12 @@ function redraw()
 		}).done(function(data)
 		{
 			var table= $("table#play_board");
+			table.empty();
 			for (var i=MIN; i<=MAX; i++) 
 			{
 				var new_str=$("<tr>");
 				new_str.appendTo($(table));
+				
 				for (var j = MIN; j <= MAX; j++)
 				{
 					var new_col=$("<td>");
