@@ -35,8 +35,11 @@ who_won(SessionId, _, _) ->
 reset(_, _, _) ->
   gen_server:cast(?LINK_TO_GEN_SERVER, {reset}).
 
-join_game(_, _, Name) ->
-  gen_server:call(?LINK_TO_GEN_SERVER, {join_game, Name}).
+join_game(SessionId, _, Name) ->
+  mod_esi:deliver(
+    SessionId,
+    gen_server:call(?LINK_TO_GEN_SERVER, {join_game, Name})
+  ).
 
 get_field(SessionId, _, _) ->
   mod_esi:deliver(
